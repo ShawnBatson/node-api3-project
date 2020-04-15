@@ -1,6 +1,7 @@
 const express = require("express");
 const logger = require("./data/middleware/logger");
 const userRouter = require("./users/userRouter");
+const postRouter = require("./posts/postRouter");
 
 const server = express();
 const port = 4000;
@@ -9,6 +10,7 @@ server.use(express.json());
 server.use(logger("long"));
 
 server.use("/users", userRouter);
+server.use("/posts", postRouter);
 
 server.get("/", (req, res) => {
     res.json({

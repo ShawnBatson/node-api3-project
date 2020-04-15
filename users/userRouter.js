@@ -59,7 +59,6 @@ router.get("/:id/posts", validateUserId(), (req, res) => {
 });
 
 router.delete("/:id", validateUserId(), (req, res) => {
-    users.remove(req.params.id);
     users
         .remove(req.params.id)
         .then((count) => {
