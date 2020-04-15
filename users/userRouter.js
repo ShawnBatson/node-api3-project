@@ -1,9 +1,10 @@
 const express = require("express");
 const users = require("./userDb");
+const posts = require("../posts/postDb");
 
 const router = express.Router();
 
-router.post("/", validateUser(), (req, res) => {
+router.post("/", validateUser(), (req, res, next) => {
     users
         .insert(req.body)
         .then((user) => {
@@ -14,18 +15,24 @@ router.post("/", validateUser(), (req, res) => {
         });
 });
 
-router.post("/:id/posts", validateUserId(), (req, res) => {
-    users
-        .insert(req.body)
-        .then((post) => {
-            res.status(201).json(post);
-        })
-        .catch((err) => {
-            next(err);
-        });
-});
+router.post(
+    "/:id/posts",
+    validatePost(),
+    validateUserId(),
+    (req, res, next) => {
+        req.body.user_id = req.params.id; //appending new property to body
+        posts
+            .insert(req.body)
+            .then((post) => {
+                res.status(201).json(post);
+            })
+            .catch((err) => {
+                next(err);
+            });
+    }
+);
 
-router.get("/", (req, res) => {
+router.get("/", (req, res, nex) => {
     users
         .get()
         .then((users) => {
@@ -51,12 +58,32 @@ router.get("/:id/posts", validateUserId(), (req, res) => {
         });
 });
 
-router.delete("/:id", (req, res) => {
-    // do your magic!
+router.delete("/:id", validateUserId(), (req, res) => {
+    users.remove(req.params.id);
+    users
+        .remove(req.params.id)
+        .then((count) => {
+            console.log(count); //still not sure what count is.
+            if (count > 0) {
+                res.status(200).json({
+                    message: "The user has been nuked",
+                });
+            }
+        })
+        .catch((err) => {
+            next(err);
+        });
 });
 
-router.put("/:id", (req, res) => {
-    // do your magic!
+router.put("/:id", validateUser(), validateUserId(), (req, res) => {
+    users
+        .update(req.params.id, req.body)
+        .then((user) => {
+            res.status(200).json(user);
+        })
+        .catch((err) => {
+            next(err);
+        });
 });
 
 //custom middleware
