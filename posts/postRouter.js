@@ -1,27 +1,69 @@
-const express = require('express');
+const express = require("express");
+const posts = require("../posts/postDb");
 
-const router = express.Router();
+const postRouter = express.Router();
 
-router.get('/', (req, res) => {
-  // do your magic!
+postRouter.get("/", validatePostId(), (req, res, nex) => {
+    posts
+        .get()
+        .then((post) => {
+            res.status(200).json(post);
+        })
+        .catch((err) => {
+            next(err);
+        });
 });
 
-router.get('/:id', (req, res) => {
-  // do your magic!
+postRouter.get("/:id", validatePostId(), (req, res) => {
+    res.status(200).json(req.posts);
 });
 
-router.delete('/:id', (req, res) => {
-  // do your magic!
+postRouter.delete("/:id", validatePostId(), (req, res) => {
+    posts
+        .remove(req.params.id)
+        .then((count) => {
+            if (count > 0) {
+                res.status(200).json({
+                    message: "the post has been nuked",
+                });
+            }
+        })
+        .catch((err) => {
+            next(err);
+        });
 });
 
-router.put('/:id', (req, res) => {
-  // do your magic!
+postRouter.put("/:id", validatePostId(), (req, res) => {
+    posts
+        .update(req.params.id, req.body)
+        .then((post) => {
+            res.status(200).json(post);
+        })
+        .catch((err) => {
+            next(err);
+        });
 });
 
 // custom middleware
 
-function validatePostId(req, res, next) {
-  // do your magic!
+function validatePostId() {
+    return (req, res, next) => {
+        posts
+            .getById(req.params.id)
+            .then((post) => {
+                if (post) {
+                    req.post = post;
+                    next();
+                } else {
+                    res.status(400).json({
+                        message: "invalid post id",
+                    });
+                }
+            })
+            .catch((err) => {
+                next(err);
+            });
+    };
 }
 
-module.exports = router;
+module.exports = postRouter;
